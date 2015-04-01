@@ -1,5 +1,6 @@
+import io
+import urllib.request
 import PIL.Image
-
 
 def image_filter(source):
     'Produce a binary image from captcha image.'
@@ -37,3 +38,10 @@ def solve(captcha):
                         result += str(n + 1)
             last_column = column
     return result
+
+
+def solve_url(image_url):
+    'Get a captcha image from the specified URL and try to solve it.'
+    image_bytes = urllib.request.urlopen(image_url).read()
+    data_stream = io.BytesIO(image_bytes)
+    return solve(image_filter(data_stream))
