@@ -1,2 +1,3 @@
 *	text eol=lf
 *.bmp	-text
+*.png	-text

@@ -37,7 +37,3 @@ def solve(captcha):
                         result += str(n + 1)
             last_column = column
     return result
-
-
-if __name__ == '__main__':
-    print(solve(image_filter('sample.png')))
