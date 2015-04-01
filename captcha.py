@@ -26,13 +26,13 @@ def solve(captcha):
             if last_column != column - 1:
                 for n in range(9):
                     if all(
-                        template.getpixel((3 * n, row)) ==
-                        captcha.getpixel((last_column + 1, row))
-                        for row in range(11)
+                        template.getpixel((2 * n, row)) ==
+                        captcha.getpixel((last_column + 1, row * 2))
+                        for row in range(4)
                     ) and all(
-                        template.getpixel((3 * n + 1, row)) ==
-                        captcha.getpixel((column - 1, row))
-                        for row in range(11)
+                        template.getpixel((2 * n + 1, row)) ==
+                        captcha.getpixel((column - 1, row * 2))
+                        for row in range(4)
                     ):
                         result += str(n + 1)
             last_column = column
