@@ -18,9 +18,9 @@ def image_filter(source):
     )
 
 
-def solve(captcha):
+def solve(captcha, template_file):
     'Solve the captcha by comparing with a template.'
-    template = PIL.Image.open('numbers.bmp')
+    template = PIL.Image.open(template_file)
     last_column, result = -1, ''
     for column in range(72):
         if all(captcha.getpixel((column, row)) for row in range(11)):
@@ -40,8 +40,13 @@ def solve(captcha):
     return result
 
 
-def solve_url(image_url):
+def fetch(url):
+    'Fetch the specified URL and return the contents as a byte stream.'
+    fetched_bytes = urllib.request.urlopen(url).read()
+    data_stream = io.BytesIO(fetched_bytes)
+    return data_stream
+
+
+def solve_url(image_url, template_file):
     'Get a captcha image from the specified URL and try to solve it.'
-    image_bytes = urllib.request.urlopen(image_url).read()
-    data_stream = io.BytesIO(image_bytes)
-    return solve(image_filter(data_stream))
+    return solve(image_filter(fetch(image_url)), template_file)
