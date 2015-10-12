@@ -2,13 +2,18 @@ language:
   - python
 python:
   - 3.2
-  - 3.3
-  - 3.4
   - nightly
+matrix:
+  include:
+    - python: 3.4
+      env:
+        - COVERALLS=1
 install:
   - pip install -r requirements.txt
-  - pip install coveralls
 script:
   - nosetests --with-coverage
 after_success:
-  - coveralls
+  - if [ $COVERALLS ]; then
+        pip install coveralls;
+        coveralls;
+    fi
