@@ -1,42 +1,54 @@
 import io
 import urllib.request
+from functools import reduce
 import PIL.Image
 
-def image_filter(source):
+
+def image_filter(source, p):
     'Produce a binary image from captcha image.'
     return PIL.Image.open(
         source
     ).convert(
         'L'
-    ).crop(
-        (4, 4, 76, 15)
-    ).point(
+    ).crop((
+        p['left'],
+        p['top'],
+        p['left'] + p['width'] * p['chars_per_captcha'],
+        p['top'] + p['height']
+    )).point(
         lambda x:
-            0 if x < 0xC0 else 0xFF
+            0 if x < p['threshold'] else 0xFF
     ).convert(
         '1'
     )
 
 
-def solve(captcha, template_file):
+def solve(captcha_image, p):
     'Solve the captcha by comparing with a template.'
-    template = PIL.Image.open(template_file)
-    last_column, result = -1, ''
-    for column in range(72):
-        if all(captcha.getpixel((column, row)) for row in range(11)):
-            if last_column != column - 1:
-                for n in range(9):
-                    if all(
-                        template.getpixel((2 * n, row)) ==
-                        captcha.getpixel((last_column + 1, row * 2))
-                        for row in range(4)
-                    ) and all(
-                        template.getpixel((2 * n + 1, row)) ==
-                        captcha.getpixel((column - 1, row * 2))
-                        for row in range(4)
-                    ):
-                        result += str(n + 1)
-            last_column = column
+    template_image = PIL.Image.open(p['template'])
+    result = []
+    for captcha_index in range(p['chars_per_captcha']):
+        max_similarity = recognized_char = -1
+        for template_index in range(p['chars_per_template']):
+            current_similarity = sum(
+                reduce(
+                    lambda x, y: x == y,
+                    map(
+                        lambda z:
+                            z[0].getpixel((column + z[1] * p['width'], row)),
+                        (
+                            (captcha_image,  captcha_index),
+                            (template_image, template_index)
+                        )
+                    )
+                )
+                for column in range(p['width'])
+                for row in range(p['height'])
+            )
+            if current_similarity > max_similarity:
+                max_similarity = current_similarity
+                recognized_char = template_index
+        result.append(recognized_char if recognized_char > 0 else None)
     return result
 
 
@@ -45,8 +57,3 @@ def fetch(url):
     fetched_bytes = urllib.request.urlopen(url).read()
     data_stream = io.BytesIO(fetched_bytes)
     return data_stream
-
-
-def solve_url(image_url, template_file):
-    'Get a captcha image from the specified URL and try to solve it.'
-    return solve(image_filter(fetch(image_url)), template_file)
