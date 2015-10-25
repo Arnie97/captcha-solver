@@ -1,0 +1,13 @@
+{
+    "left":     4,
+    "top":      4,
+    "width":   72,
+    "height":  11,
+    "length":   6,
+
+    "threshold":        192,
+    "typical_columns":  [0, -1],
+    "template":         "tests/templates/free-sms.bmp",
+    "samples":          "tests/samples/free-sms/",
+    "url":              "http://www.afreesms.com/image.php"
+}

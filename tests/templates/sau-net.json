@@ -1,0 +1,10 @@
+{
+    "left":     6,
+    "top":      4,
+    "width":   52,
+    "height":  12,
+
+    "template":  "tests/templates/sau-net.bmp",
+    "samples":   "tests/samples/sau-net/",
+    "url":       "http://nicserver.sau.edu.cn/image.jsp"
+}
