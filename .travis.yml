@@ -7,13 +7,16 @@ matrix:
   include:
     - python: 3.4
       env:
-        - COVERALLS=1
+        - NOSE_WITH_COVERAGE=1
+        - NOSE_COVER_TESTS=1
 install:
   - pip install -r requirements.txt
 script:
-  - nosetests --with-coverage
-after_success:
-  - if [ $COVERALLS ]; then
+  - if [ $NOSE_WITH_COVERAGE ]; then
         pip install coveralls;
+    fi
+  - nosetests
+after_success:
+  - if [ $NOSE_WITH_COVERAGE ]; then
         coveralls;
     fi
