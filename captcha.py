@@ -1,30 +1,37 @@
 import io
 import urllib.request
 from functools import reduce
+import operator
 import PIL.Image
 
 
-def image_filter(source, p):
+def image_filter(source, params):
     'Produce a binary image from captcha image.'
     return PIL.Image.open(
         source
     ).convert(
         'L'
     ).crop((
-        p.get('left', 0),
-        p.get('top',  0),
-        p.get('left', 0) + p['width'],
-        p.get('top',  0) + p['height']
+        params.get('left', 0),
+        params.get('top',  0),
+        params.get('left', 0) + params['width'],
+        params.get('top',  0) + params['height']
     )).point(
         lambda x:
-            0 if x < p.get('threshold', 0x80) else 0xFF
+            0 if x < params.get('threshold', 0x80) else 0xFF
     ).convert(
         '1'
     )
 
 
 def split_by_whitespace(image):
-    'Split a binary image into single characters.'
+    '''Split a binary image into single characters.
+
+    This function returns a list. Each element in the list is itself a list of
+    two integrals, which represent the range of columns consisting a recognized
+    character. The recognized characters are sorted in increasing order by
+    their first column.
+    '''
     characters = []
     whitespace_before = True
     for column in range(image.size[0]):
@@ -42,9 +49,9 @@ def split_by_whitespace(image):
     return characters
 
 
-def solve(captcha_image, p):
+def solve(captcha_image, params):
     'Solve the captcha by comparing with a template.'
-    template_image = PIL.Image.open(p['template'])
+    template_image = PIL.Image.open(params['template'])
     result = []
 
     captcha_chars, template_chars = map(
@@ -61,27 +68,26 @@ def solve(captcha_image, p):
             )
             current_similarity = sum(
                 reduce(
-                    lambda x, y: x == y,
+                    operator.eq,
                     map(
-                        lambda z:
-                            z[0].getpixel((
-                                col + z[1][0] if col >= 0 else col + z[1][1],
-                                row
-                            )),
+                        # Typical columns are specified in a format similar to
+                        # Python indexing, i.e. if it is below zero, it is
+                        # treated as chars[-1] + typical_column; otherwise,
+                        # it is parsed into chars[0] + col.
+                        lambda z: z[0].getpixel((col + z[1][col < 0], row)),
                         matrix
                     )
                 )
-                for col in p.get(
+                for col in params.get(
                     'typical_columns',
                     range(min(map(
-                        lambda z:
-                            z[1][1] - z[1][0],
+                        lambda z: z[1][1] - z[1][0],
                         matrix
                     )))
                 )
-                for row in p.get(
+                for row in params.get(
                     'typical_rows',
-                    range(p['height'])
+                    range(params['height'])
                 )
             )
             if current_similarity > max_similarity:
