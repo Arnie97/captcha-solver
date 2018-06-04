@@ -59,12 +59,12 @@ def solve(captcha_image, template, typical_columns=[], typical_rows=[], **_):
             captcha_image, template_image
         )
     )
-    for captcha_index in range(len(captcha_chars)):
+    for captcha_char in captcha_chars:
         max_similarity = recognized_char = -1
-        for template_index in range(len(template_chars)):
+        for digit, template_char in enumerate(template_chars):
             matrix = (
-                (captcha_image,  captcha_chars[captcha_index]),
-                (template_image, template_chars[template_index])
+                (captcha_image,  captcha_char),
+                (template_image, template_char),
             )
             current_similarity = sum(
                 reduce(
@@ -86,7 +86,7 @@ def solve(captcha_image, template, typical_columns=[], typical_rows=[], **_):
             )
             if current_similarity > max_similarity:
                 max_similarity = current_similarity
-                recognized_char = template_index
+                recognized_char = digit
         result.append(recognized_char if recognized_char >= 0 else None)
     return result
 
