@@ -1,10 +1,5 @@
 {
-    "left":     6,
-    "top":     16,
-    "width":   48,
-    "height":  10,
-
-    "template":  "tests/templates/sau-lib.bmp",
-    "samples":   "tests/samples/sau-lib/",
-    "url":       "http://202.206.242.99/reader/captcha.php"
+    "left": 6,
+    "top": 16,
+    "url": "http://opac.lib.ustc.edu.cn/reader/captcha.php"
 }

@@ -5,20 +5,20 @@ import operator
 import PIL.Image
 
 
-def image_filter(source, params):
+def image_filter(source, left=0, top=0, width=0, height=0, threshold=128, **_):
     'Produce a binary image from captcha image.'
-    return PIL.Image.open(
-        source
-    ).convert(
+    image = PIL.Image.open(source)
+    if not width:
+        width = image.size[0] - left
+    if not height:
+        height = image.size[1] - top
+
+    return image.crop((
+        left, top, left + width, top + height
+    )).convert(
         'L'
-    ).crop((
-        params.get('left', 0),
-        params.get('top',  0),
-        params.get('left', 0) + params['width'],
-        params.get('top',  0) + params['height']
-    )).point(
-        lambda x:
-            0 if x < params.get('threshold', 0x80) else 0xFF
+    ).point(
+        lambda x: 0 if x < threshold else 0xFF
     ).convert(
         '1'
     )
@@ -49,9 +49,9 @@ def split_by_whitespace(image):
     return characters
 
 
-def solve(captcha_image, params):
+def solve(captcha_image, template, typical_columns=[], typical_rows=[], **_):
     'Solve the captcha by comparing with a template.'
-    template_image = PIL.Image.open(params['template'])
+    template_image = PIL.Image.open(template)
     result = []
 
     captcha_chars, template_chars = map(
@@ -78,17 +78,11 @@ def solve(captcha_image, params):
                         matrix
                     )
                 )
-                for col in params.get(
-                    'typical_columns',
-                    range(min(map(
-                        lambda z: z[1][1] - z[1][0],
-                        matrix
-                    )))
-                )
-                for row in params.get(
-                    'typical_rows',
-                    range(params['height'])
-                )
+                for col in typical_columns or range(min(map(
+                    lambda z: z[1][1] - z[1][0],
+                    matrix
+                )))
+                for row in typical_rows or range(template_image.size[1])
             )
             if current_similarity > max_similarity:
                 max_similarity = current_similarity
