@@ -24,6 +24,32 @@ def image_filter(source, left=0, top=0, width=0, height=0, threshold=128, **_):
     )
 
 
+def remove_noise(image, radius=1, threshold=0.5):
+    '''Remove salt-and-pepper noise from the image.
+
+    If the ratio of white points in neighborhood of a point is more than the
+    specified threshold, then paint the point as white.
+    '''
+    new_image = image.copy()
+    for column in range(image.size[0]):
+        for row in range(image.size[1]):
+            if image.getpixel((column, row)):  # ignore white points
+                continue
+            neighbors = [
+                (x, y)
+                for x in range(column - radius, column + radius + 1)
+                for y in range(row - radius, row + radius + 1)
+                if 0 <= x < image.size[0] and 0 <= y < image.size[1]
+            ]
+            white_neighbors = sum(
+                bool(image.getpixel(pair))
+                for pair in neighbors
+            )
+            if white_neighbors > len(neighbors) * threshold:
+                new_image.putpixel((column, row), 0xFF)
+    return new_image
+
+
 def split_by_whitespace(image):
     '''Split a binary image into single characters.
 
