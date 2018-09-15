@@ -3,6 +3,7 @@ import urllib.request
 from functools import reduce
 import operator
 import PIL.Image
+import PIL.ImageOps
 
 
 def image_filter(source, left=0, top=0, width=0, height=0, threshold=128, **_):
@@ -73,6 +74,25 @@ def split_by_whitespace(image):
     if len(characters) and len(characters[-1]) == 1:
         characters[-1].append(image.size[0])
     return characters
+
+
+def trim_borders(image, invert=True):
+    'Remove white or black borders from the image.'
+    reference = PIL.ImageOps.invert(image.convert('L')) if invert else image
+    return image.crop(reference.getbbox())
+
+
+def vertical_align(image, characters=None, border=2):
+    'Align all characters to the bottom.'
+    if characters is None:
+        characters = split_by_whitespace(image)
+    x = border
+    new_image = PIL.Image.new('1', image.size, 0xFF)
+    for left, right in characters:
+        char_image = trim_borders(image.crop((left, 0, right, image.size[1])))
+        new_image.paste(char_image, (x, image.size[1] - char_image.size[1]))
+        x += char_image.size[0] + border
+    return new_image
 
 
 def solve(captcha_image, template, typical_columns=[], typical_rows=[], **_):
